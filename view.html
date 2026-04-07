@@ -1,38 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Receiver - Stealth View</title>
+    <title>Receiver</title>
     <script src="https://unpkg.com"></script>
     <style>
-        body { margin: 0; background: black; overflow: hidden; }
+        body { margin: 0; background: #000; overflow: hidden; }
         video { width: 100vw; height: 100vh; object-fit: contain; }
     </style>
 </head>
 <body>
+    <!-- 'muted' and 'autoplay' are required for the browser to allow playback -->
     <video id="remoteVideo" autoplay playsinline muted></video>
     <script>
-        // Use the fixed ID we are listening for
-        const peer = new Peer('host-monitor-unique-id');
+        const peer = new Peer();
+        const targetId = 'host-monitor-unique-id';
 
-        peer.on('call', (call) => {
-            console.log("Receiving call...");
-            call.answer(); // Answer the call
-
+        peer.on('open', () => {
+            // Attempt to connect to the broadcaster
+            const call = peer.call(targetId, new MediaStream());
+            
             call.on('stream', (remoteStream) => {
                 const video = document.getElementById('remoteVideo');
                 video.srcObject = remoteStream;
-                
-                // CRITICAL: Force video to play
+                // Force video to paint frames
                 video.onloadedmetadata = () => {
-                    video.play();
+                    video.play().catch(e => console.error("Playback blocked:", e));
                 };
             });
         });
 
-        peer.on('error', (err) => {
-            console.error("Peer error:", err);
-            // If ID is taken, it might mean another tab is open
-        });
+        // Auto-reconnect if the connection drops
+        peer.on('disconnected', () => peer.reconnect());
     </script>
 </body>
 </html>
