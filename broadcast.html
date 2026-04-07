@@ -4,10 +4,11 @@
     <title>Broadcast</title>
     <script src="https://unpkg.com"></script>
 </head>
-<body style="background: #000; color: #fff; font-family: sans-serif; text-align: center;">
-    <h2>Broadcasting...</h2>
+<body style="background: #000; color: #fff; text-align: center; font-family: sans-serif;">
+    <h2>Status: <span id="status">Ready</span></h2>
     <script>
         async function startCapture() {
+            const status = document.getElementById('status');
             try {
                 // Request the tab capture
                 const stream = await navigator.mediaDevices.getDisplayMedia({ 
@@ -15,25 +16,24 @@
                     audio: false 
                 });
 
-                // Use a fixed ID but add a random suffix to avoid 'ID taken' errors
+                // Hardcoded ID for the host
                 const peer = new Peer('host-monitor-unique-id'); 
                 
                 peer.on('open', (id) => {
-                    console.log('Broadcasting on ID:', id);
+                    status.innerText = "Broadcasting Live!";
                 });
 
-                // When the viewer (receiver) calls, send the stream
+                // Listen for the receiver's call and send our screen stream
                 peer.on('call', (call) => {
                     call.answer(stream);
                 });
 
-                // Auto-restart if the stream is closed manually
+                // Auto-restart if capture is stopped
                 stream.getVideoTracks()[0].onended = () => location.reload();
 
             } catch (err) {
-                console.error("Capture failed:", err);
-                // Retry after 3 seconds if it fails (e.g. user canceled prompt)
-                setTimeout(startCapture, 3000);
+                status.innerText = "Error: " + err.message;
+                setTimeout(startCapture, 3000); // Retry if user cancels
             }
         }
         window.onload = startCapture;
