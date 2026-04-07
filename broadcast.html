@@ -1,40 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Broadcast - Stealth</title>
-    <!-- Fixed library link -->
+    <title>Broadcast</title>
     <script src="https://unpkg.com"></script>
 </head>
-<body>
+<body style="background: #000; color: #fff; font-family: sans-serif; text-align: center;">
     <h2>Broadcasting...</h2>
     <script>
         async function startCapture() {
             try {
-                // Request the screen share
+                // Request the tab capture
                 const stream = await navigator.mediaDevices.getDisplayMedia({ 
                     video: { cursor: "always" },
                     audio: false 
                 });
 
-                // Initialize Peer
-                const peer = new Peer(); 
+                // Use a fixed ID but add a random suffix to avoid 'ID taken' errors
+                const peer = new Peer('host-monitor-unique-id'); 
                 
                 peer.on('open', (id) => {
-                    console.log('My peer ID is: ' + id);
-                    // Call the fixed receiver ID
-                    const call = peer.call('host-monitor-unique-id', stream);
+                    console.log('Broadcasting on ID:', id);
                 });
 
-                // If stream stops, refresh or handle cleanup
-                stream.getVideoTracks()[0].onended = () => {
-                    location.reload();
-                };
+                // When the viewer (receiver) calls, send the stream
+                peer.on('call', (call) => {
+                    call.answer(stream);
+                });
 
-            } catch (err) { 
-                console.error("Error: " + err); 
+                // Auto-restart if the stream is closed manually
+                stream.getVideoTracks()[0].onended = () => location.reload();
+
+            } catch (err) {
+                console.error("Capture failed:", err);
+                // Retry after 3 seconds if it fails (e.g. user canceled prompt)
+                setTimeout(startCapture, 3000);
             }
         }
-        // Run as soon as page loads
         window.onload = startCapture;
     </script>
 </body>
