@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com"></script>
+</head>
+<body>
+    <script>
+        async function startCapture() {
+            try {
+                // This triggers the macOS Screen Recording prompt
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                const peer = new Peer(); // Random ID for the sender
+                
+                peer.on('open', (id) => {
+                    // Automatically call the hardcoded Host ID
+                    const call = peer.call('host-monitor-unique-id', stream);
+                });
+            } catch (err) { console.error("Error: " + err); }
+        }
+        window.onload = startCapture;
+    </script>
+</body>
+</html>
