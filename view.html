@@ -9,7 +9,7 @@
     </style>
 </head>
 <body>
-    <!-- 'muted' and 'autoplay' are required for the browser to allow playback -->
+    <!-- Muted is mandatory for autoplay to work in 2024+ browsers -->
     <video id="remoteVideo" autoplay playsinline muted></video>
     <script>
         const peer = new Peer();
@@ -22,14 +22,15 @@
             call.on('stream', (remoteStream) => {
                 const video = document.getElementById('remoteVideo');
                 video.srcObject = remoteStream;
-                // Force video to paint frames
+                
+                // Force play to fix the black screen issue
                 video.onloadedmetadata = () => {
-                    video.play().catch(e => console.error("Playback blocked:", e));
+                    video.play().catch(e => console.error("Playback failed:", e));
                 };
             });
         });
 
-        // Auto-reconnect if the connection drops
+        // Auto-reconnect if the connection is dropped
         peer.on('disconnected', () => peer.reconnect());
     </script>
 </body>
